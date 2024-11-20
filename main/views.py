@@ -45,6 +45,7 @@ def customers(request):
       return render(request, 'customers.html', {"customers": data})
 
 
+# delete button function
 def delete_customer(request, customer_id):
       customer = Customer.objects.get(id=customer_id) # SELECT * FROM customers WHERE id=1
       customer.delete()
