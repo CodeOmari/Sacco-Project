@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.shortcuts import render, redirect
 
 from main.models import Customer, Deposits
 
@@ -37,3 +38,14 @@ def test(request):
       # Fetch deposits
       deposit_count = Deposits.objects.count()
       return HttpResponse(f"Ok Done!, you have {customer_count} customers and {deposit_count} deposits")
+
+
+def customers(request):
+      data =  Customer.objects.all() # SELECT * FROM customers
+      return render(request, 'customers.html', {"customers": data})
+
+
+def delete_customer(request, customer_id):
+      customer = Customer.objects.get(id=customer_id) # SELECT * FROM customers WHERE id=1
+      customer.delete()
+      return redirect('customers')
