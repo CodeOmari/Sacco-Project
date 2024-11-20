@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
@@ -41,11 +42,23 @@ def test(request):
 
 
 def customers(request):
-      data =  Customer.objects.all() # SELECT * FROM customers
-      return render(request, 'customers.html', {"customers": data})
+      data =  Customer.objects.all().order_by('id').values() # SELECT * FROM customers
+      paginator = Paginator(data, 15)
+      page = request.GET.get('page', 1)
+      try:
+            paginated_data = paginator.page(page)
+      except  EmptyPage | PageNotAnInteger:
+            paginated_data = paginator.page(1)
+      return render(request, "customers.html", {"data": paginated_data})
 
 
 def delete_customer(request, customer_id):
       customer = Customer.objects.get(id=customer_id) # SELECT * FROM customers WHERE id=1
       customer.delete()
       return redirect('customers')
+
+
+def customer_details(request, customer_id):
+      customer = Customer.objects.get(id=customer_id)
+      deposits = Deposits.objects.filter(customer_id=customer_id)
+      return render(request, 'details.html', {"deposits": deposits, "customer": customer})
