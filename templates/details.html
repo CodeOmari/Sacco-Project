@@ -39,12 +39,21 @@
                         <th>Weight(Kgs)</th>
                         <td>{{ customer.weight }}</td>
                     </tr>
+                    <tr>
+                       <th>Total Deposit</th>
+                       <td>{{ total }}</td>
+                   </tr>
                 </table>
             </div>
             <div class="col-sm-4">
                 <p class="text-center"> Profile Picture</p>
-                <img src="{% static 'logo.png' %}" alt="logo" 
-                     class="img-fluid mx-auto d-block" style="height: 178px; width: 178px;">
+                {% if customer.profile_pic %}
+               	    <img src="{{ customer.profile_pic.url }}" alt="logo" 
+                     class="img-fluid mx-auto d-block rounded-circle" style="height: 178px; width: 178px;">
+               {% else %}
+               	    <img src="{% static 'logo.png' %}" alt="logo" 
+                     class="img-fluid mx-auto d-block rounded-circle" style="height: 178px; width: 178px;">
+               {% endif %}
             </div>
             <div class="col-sm-4">
                 <table class="table table-bordered">
