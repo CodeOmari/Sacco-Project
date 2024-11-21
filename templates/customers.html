@@ -27,21 +27,48 @@
                     <td>{{ customer.last_name }}</td>
                     <td>{{ customer.email }}</td>
                     <td>{{ customer.created_at }}</td>
-                    <td>
-                        <a href="{% url 'delete_customer' customer.id %}" class="btn btn-danger btn-sm">Remove</a>
-                    </td>
-                    <td>
-                        <a href="{% url 'customer_details' customer.id %}" class="btn btn-primary btn-sm">Details</a>
-                    </td>
-                    <td>
-                        <a href="{% url 'update_customer' customer.id %}" class="btn btn-dark btn-sm">Update</a>
-                    </td>
-                    <td>
-                            <a class="btn btn-primary btn-sm" href="{% url 'deposit' customer.id %}">Deposit</a>
-                    </td>
+                
+                    {% if perms.main.delete_customer %}
+                        <td>
+                            <a class="btn btn-danger btn-sm" href="{% url 'delete_customer' customer.id %}">Remove</a>
+                        </td>
+                    {% else %}
+                       <td>
+                           <button class="btn btn-sm disabled">Action</button>
+                       </td>
+                    {% endif %}
+                
+                    {% if perms.main.view_customer %}
+                        <td>
+                            <a class="btn btn-info btn-sm" href="{% url 'customer_details' customer.id %}">Details</a>
+                        </td>
+                    {% else %}
+                       <td>
+                           <button class="btn btn-sm disabled">Action</button>
+                       </td>
+                    {% endif %}
+                
+                    {% if perms.main.change_customer %}
+                        <td>
+                            <a class="btn btn-secondary btn-sm"
+                               href="{% url 'update_customer' customer.id %}">Update</a>
+                        </td>
+                    {% else %}
+                       <td>
+                           <button class="btn btn-sm disabled">Action</button>
+                       </td>
+                    {% endif %}
+                    
+                    {% if perms.main.add_deposit %}
+                            <td>
+                                <a class="btn btn-primary btn-sm" href="{% url 'deposit' customer.id %}">Deposit</a>
+                            </td>
+                    {% else %}
+                           <td>
+                               <button class="btn btn-sm disabled">Action</button>
+                           </td>
+                    {% endif %}
                 </tr>
-            {% empty %}
-            	<p>No Customers Available</p>
             {% endfor %}
             
         </table>
