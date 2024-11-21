@@ -1,10 +1,12 @@
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
-from main.app_forms import CustomerForm, DepositForm
+from main.app_forms import CustomerForm, DepositForm, LoginForm
 from main.models import Customer, Deposits
 
 
@@ -43,7 +45,7 @@ def test(request):
       deposit_count = Deposits.objects.count()
       return HttpResponse(f"Ok Done!, you have {customer_count} customers and {deposit_count} deposits")
 
-
+@login_required
 def customers(request):
       data = Customer.objects.all().order_by('-id').values()  # SELECT * FROM customers
       paginator = Paginator(data, 15)
@@ -54,7 +56,8 @@ def customers(request):
             paginated_data = paginator.page(1)
       return render(request, "customers.html", {"data": paginated_data})
 
-
+@login_required
+@permission_required("main.delete_customer", raise_exception=True)
 def delete_customer(request, customer_id):
       customer = Customer.objects.get(id=customer_id) # SELECT * FROM customers WHERE id=1
       customer.delete()
@@ -62,6 +65,8 @@ def delete_customer(request, customer_id):
       return redirect('customers')
 
 
+@login_required
+@permission_required("main.view_customer", raise_exception=True)
 def customer_details(request, customer_id):
       customer = Customer.objects.get(id=customer_id)
       deposits = Deposits.objects.filter(customer_id=customer_id)
@@ -69,7 +74,8 @@ def customer_details(request, customer_id):
       return render(request, 'details.html', {"deposits": deposits,
                                               "customer": customer, "total": total})
 
-
+@login_required
+@permission_required("main.add_customer", raise_exception=True)
 def add_customer(request):
     if request.method == "POST":
         form = CustomerForm(request.POST, request.FILES)
@@ -81,6 +87,8 @@ def add_customer(request):
         form = CustomerForm()
     return render(request, 'customer_form.html', {"form": form})
 
+@login_required
+@permission_required("main.change_customer", raise_exception=True)
 def update_customer(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
     if request.method == "POST":
@@ -93,6 +101,8 @@ def update_customer(request, customer_id):
         form = CustomerForm(instance=customer)
     return render(request, 'customer_update_form.html', {"form": form})
 
+@login_required
+@permission_required("main.view_customer", raise_exception=True)
 def search_customer(request):
     data = Customer.objects.all().order_by('id').values()  # SELECT * FROM customers
     search_term = request.GET.get('search')
@@ -106,6 +116,8 @@ def search_customer(request):
         paginated_data = paginator.page(1)
     return render(request, "customers.html", {"data": paginated_data})
 
+@login_required
+@permission_required("main.add_deposit", raise_exception=True)
 def deposit(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
     if request.method == "POST":
@@ -119,4 +131,26 @@ def deposit(request, customer_id):
     else:
         form = DepositForm()
     return render(request, 'deposit_form.html', {"form": form, "customer": customer})
+
+
+def login_user(request):
+    if request.method == "GET":
+        form = LoginForm()
+        return render(request, "login_form.html", {"form": form})
+    elif request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user:
+                login(request, user) # sessions # cookies
+                return redirect('customers')
+        messages.error(request, "Invalid username or password")
+        return render(request, "login_form.html", {"form": form})
+
+@login_required
+def signout_user(request):
+    logout(request)
+    return redirect('login')
 
